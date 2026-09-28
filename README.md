@@ -83,12 +83,11 @@ sudo ./install.sh
 
 ## 🗑 Uninstallation
 
+Run the uninstallation script to stop the service, remove all binaries/configs, and automatically clean up the tags from Proxmox Datacenter, LXCs, and VMs:
+
 ```bash
-pve-powerscheduler disable
-rm -f /usr/local/bin/pve-powerscheduler
-rm -f /etc/systemd/system/pve-powerscheduler.service
-systemctl daemon-reload
-rm -rf /var/lib/pve-powerscheduler /etc/pve-powerscheduler
+chmod +x uninstall.sh
+sudo ./uninstall.sh
 ```
 
 ---
