@@ -16,14 +16,14 @@ systemctl disable pve-powerscheduler.service 2>/dev/null || true
 rm -f /etc/systemd/system/pve-powerscheduler.service
 systemctl daemon-reload
 
-# 2. Remove binary
-echo "[2/5] Removing binary from /usr/local/bin/pve-powerscheduler..."
+# 2. Remove symlink from /usr/local/bin
+echo "[2/5] Removing symlink from /usr/local/bin/pve-powerscheduler..."
 rm -f /usr/local/bin/pve-powerscheduler
 
-# 3. Remove runtime state and configuration
-echo "[3/5] Removing state and configuration directories..."
+# 3. Remove runtime state
+echo "[3/5] Removing runtime state directory..."
 rm -rf /var/lib/pve-powerscheduler
-rm -rf /etc/pve-powerscheduler
+rm -rf /etc/pve-powerscheduler 2>/dev/null || true
 
 # 4. Remove tags from Proxmox Datacenter Options
 echo "[4/5] Removing PowerScheduler tags from Proxmox Datacenter..."
@@ -122,4 +122,4 @@ fi
 
 echo ""
 echo "=== Uninstallation completed successfully! ==="
-echo "Proxmox PowerScheduler, its service, configuration, and tags have been removed."
+echo "Proxmox PowerScheduler, its service, and tags have been removed."

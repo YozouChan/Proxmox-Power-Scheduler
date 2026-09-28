@@ -4,18 +4,18 @@ Automated, schedule-based power management for Proxmox VE. Automatically stops a
 
 ---
 
-## 🚀 Features
+## Features
 
-- **⏰ Individual Daily Schedules:** Configure exact START and STOP times (`HH:MM`) for each weekday. Supports overnight spans.
-- **🔄 Dynamic Hot-Reloading:** The service automatically reloads the configuration every 30s. No service restarts required for config edits.
-- **🏷️ Staged Tag Orchestration:** `power-start-first` -> Default (untagged) -> `power-start-last` (and vice-versa for shutdown).
-- **🖥️ LXC & VM Support:** Native LXC support; optional QEMU/KVM VM support via `ENABLE_VMS=true` (disabled by default).
-- **🛡️ State & I/O Protection:** Only wakes up guests that were running before shutdown. Staggered starts avoid disk I/O spikes.
-- **⚡ Zero Overhead:** Lightweight background systemd service (< 0.1% CPU/RAM).
+- **Individual Daily Schedules:** Configure exact START and STOP times (`HH:MM`) for each weekday. Supports overnight spans.
+- **Dynamic Hot-Reloading:** The service automatically reloads the configuration every 30s. No service restarts required for config edits.
+- **Staged Tag Orchestration:** `power-start-first` -> Default (untagged) -> `power-start-last` (and vice-versa for shutdown).
+- **LXC & VM Support:** Native LXC support; optional QEMU/KVM VM support via `ENABLE_VMS=true` (disabled by default).
+- **State & I/O Protection:** Only wakes up guests that were running before shutdown. Staggered starts avoid disk I/O spikes.
+- **Zero Overhead:** Lightweight background systemd service (< 0.1% CPU/RAM).
 
 ---
 
-## 🏷️ Proxmox Tags
+## Proxmox Tags
 
 Tags are automatically registered in Proxmox upon install and selectable in the Web GUI under **Guest -> Tags**:
 
@@ -28,15 +28,15 @@ Tags are automatically registered in Proxmox upon install and selectable in the 
 | `power-stop-first` | — | **1st** (before others) |
 | `power-stop-last` | — | **3rd** (after others) |
 
-> Flow: `First` -> wait `STAGE_DELAY_SECONDS` (default: 5s) -> `Default` -> wait -> `Last`
+> **Flow:** `First` -> wait `STAGE_DELAY_SECONDS` (default: 5s) -> `Default` -> wait -> `Last`
 
 ---
 
-## ⚙️ Configuration
+## Configuration
 
-The configuration file is **`pve-powerscheduler.conf`**:
-- Located in your cloned repository folder, and installed to `/etc/pve-powerscheduler/pve-powerscheduler.conf`.
-- Changes are **hot-reloaded dynamically** every 30 seconds.
+The configuration file is **`pve-powerscheduler.conf`** directly in your cloned repository folder:
+- **No extra config file in `/etc`:** The script references `pve-powerscheduler.conf` directly where it was cloned.
+- Changes are **hot-reloaded dynamically** every 30 seconds without restarting the service.
 
 Key options:
 ```bash
@@ -57,7 +57,7 @@ START_DELAY_SECONDS=2     # Pause between individual guest starts (I/O smoothing
 
 ---
 
-## 📦 Installation
+## Installation
 
 ```bash
 git clone https://github.com/YozouChan/proxmox-power-scheduler.git
@@ -68,7 +68,7 @@ sudo ./install.sh
 
 ---
 
-## 🛠 CLI Commands
+## CLI Commands
 
 | Command | Description |
 | :--- | :--- |
@@ -81,9 +81,9 @@ sudo ./install.sh
 
 ---
 
-## 🗑 Uninstallation
+## Uninstallation
 
-Run the uninstallation script to stop the service, remove all binaries/configs, and automatically clean up the tags from Proxmox Datacenter, LXCs, and VMs:
+Run the uninstallation script to stop the service, remove the binary symlink, and automatically clean up tags from Proxmox Datacenter, LXCs, and VMs:
 
 ```bash
 chmod +x uninstall.sh
@@ -92,12 +92,12 @@ sudo ./uninstall.sh
 
 ---
 
-## 🤖 Disclaimer / AI Notice
+## Disclaimer / AI Notice
 
 The documentation in this README and all code comments within this project were generated and structured with the assistance of AI.
 
 ---
 
-## 📄 License
+## License
 
 This project is licensed under the [MIT License](LICENSE).

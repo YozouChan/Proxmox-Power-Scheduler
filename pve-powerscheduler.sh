@@ -5,14 +5,17 @@
 # Automated time- and weekday-based power management for Proxmox VE guests
 # ==============================================================================
 
-# Config & Paths (uses /etc if installed, or local repository folder as fallback)
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
-CONFIG_DIR="/etc/pve-powerscheduler"
-CONFIG_FILE="${CONFIG_DIR}/pve-powerscheduler.conf"
-if [ ! -f "$CONFIG_FILE" ] && [ -f "${SCRIPT_DIR}/pve-powerscheduler.conf" ]; then
-    CONFIG_FILE="${SCRIPT_DIR}/pve-powerscheduler.conf"
-    CONFIG_DIR="${SCRIPT_DIR}"
-fi
+# Resolve project directory (handles symlinks seamlessly)
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do
+    DIR="$(cd -P "$(dirname "$SOURCE")" >/dev/null 2>&1 && pwd)"
+    SOURCE="$(readlink "$SOURCE")"
+    [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
+done
+PROJECT_DIR="$(cd -P "$(dirname "$SOURCE")" >/dev/null 2>&1 && pwd)"
+
+# Configuration file stays directly in the project folder
+CONFIG_FILE="${PROJECT_DIR}/pve-powerscheduler.conf"
 STATE_DIR="/var/lib/pve-powerscheduler"
 STATE_FILE="${STATE_DIR}/running_guests.list"
 SERVICE_NAME="pve-powerscheduler.service"
@@ -577,6 +580,7 @@ case "$1" in
         systemctl status "$SERVICE_NAME" --no-pager 2>/dev/null || echo "Service ($SERVICE_NAME) is currently not running or not yet installed."
         echo "--------------------------------------------------"
         echo "General Configuration:"
+        echo "  - Config file: $CONFIG_FILE"
         echo "  - Manage VMs (QEMU/KVM): $ENABLE_VMS"
         echo "  - Stage delay: ${STAGE_DELAY_SECONDS}s | Guest I/O delay: ${START_DELAY_SECONDS}s"
         echo "Configured Weekly Schedule:"
