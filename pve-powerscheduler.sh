@@ -51,7 +51,7 @@ TAG_START_LAST="${TAG_START_LAST:-${TAG_START_STAGE2:-${TAG_START_PRIO2:-power-s
 TAG_STOP_FIRST="${TAG_STOP_FIRST:-${TAG_STOP_STAGE1:-${TAG_STOP_PRIO1:-power-stop-first}}}"
 TAG_STOP_LAST="${TAG_STOP_LAST:-${TAG_STOP_STAGE2:-${TAG_STOP_PRIO2:-power-stop-last}}}"
 
-mkdir -p "$STATE_DIR"
+mkdir -p "$STATE_DIR" 2>/dev/null || true
 
 # ------------------------------------------------------------------------------
 # Schedule Calculation Helpers
@@ -233,10 +233,10 @@ stop_guest() {
     label=$(get_guest_label "$id")
     if pct status "$id" 2>/dev/null | grep -q "status: running"; then
         echo "Stopping $label..."
-        pct shutdown "$id" --timeout 60 2>/dev/null || pct stop "$id" 2>/dev/null &
+        ( pct shutdown "$id" --timeout 60 2>/dev/null || pct stop "$id" 2>/dev/null ) &
     elif is_vm_enabled && qm status "$id" 2>/dev/null | grep -q "status: running"; then
         echo "Stopping $label..."
-        qm shutdown "$id" --timeout 60 2>/dev/null || qm stop "$id" 2>/dev/null &
+        ( qm shutdown "$id" --timeout 60 2>/dev/null || qm stop "$id" 2>/dev/null ) &
     fi
 }
 
@@ -335,7 +335,7 @@ stop_all_containers() {
     # Create/update state file (preserve existing list if present)
     local save_list="$running_filtered"
     if [ -f "$STATE_FILE" ] && [ -s "$STATE_FILE" ]; then
-        save_list=$(echo -e "$(cat "$STATE_FILE")\n$running_filtered" | tr ' ' '\n' | sort -u | grep -v '^$')
+        save_list=$(printf "%s\n%s\n" "$(cat "$STATE_FILE")" "$running_filtered" | tr ' ' '\n' | sort -u | grep -v '^$')
     fi
     echo "$save_list" > "$STATE_FILE"
 
@@ -574,7 +574,7 @@ case "$1" in
         echo "Service enabled and started."
         ;;
     status)
-        systemctl status "$SERVICE_NAME" --no-pager
+        systemctl status "$SERVICE_NAME" --no-pager 2>/dev/null || echo "Service ($SERVICE_NAME) is currently not running or not yet installed."
         echo "--------------------------------------------------"
         echo "General Configuration:"
         echo "  - Manage VMs (QEMU/KVM): $ENABLE_VMS"
