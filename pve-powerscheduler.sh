@@ -5,9 +5,14 @@
 # Automated time- and weekday-based power management for Proxmox VE guests
 # ==============================================================================
 
-# Config & Paths
+# Config & Paths (uses /etc if installed, or local repository folder as fallback)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 CONFIG_DIR="/etc/pve-powerscheduler"
 CONFIG_FILE="${CONFIG_DIR}/pve-powerscheduler.conf"
+if [ ! -f "$CONFIG_FILE" ] && [ -f "${SCRIPT_DIR}/pve-powerscheduler.conf" ]; then
+    CONFIG_FILE="${SCRIPT_DIR}/pve-powerscheduler.conf"
+    CONFIG_DIR="${SCRIPT_DIR}"
+fi
 STATE_DIR="/var/lib/pve-powerscheduler"
 STATE_FILE="${STATE_DIR}/running_guests.list"
 SERVICE_NAME="pve-powerscheduler.service"
@@ -482,11 +487,12 @@ start_all_containers() {
 }
 
 # ------------------------------------------------------------------------------
-# Daemon loop for background service
+# Daemon loop for background service with dynamic config hot-reloading
 # ------------------------------------------------------------------------------
 run_daemon() {
     echo "Proxmox PowerScheduler Service started (VMs enabled: $ENABLE_VMS)."
     local last_state=""
+    local last_vms="$ENABLE_VMS"
 
     # Detect initial state upon service start
     if should_be_off; then
@@ -504,6 +510,21 @@ run_daemon() {
     fi
 
     while true; do
+        # Hot-reload configuration dynamically if changed
+        if [ -f "$CONFIG_FILE" ]; then
+            # shellcheck source=/dev/null
+            source "$CONFIG_FILE"
+            TAG_START_FIRST="${TAG_START_FIRST:-${TAG_START_STAGE1:-${TAG_START_PRIO1:-power-start-first}}}"
+            TAG_START_LAST="${TAG_START_LAST:-${TAG_START_STAGE2:-${TAG_START_PRIO2:-power-start-last}}}"
+            TAG_STOP_FIRST="${TAG_STOP_FIRST:-${TAG_STOP_STAGE1:-${TAG_STOP_PRIO1:-power-stop-first}}}"
+            TAG_STOP_LAST="${TAG_STOP_LAST:-${TAG_STOP_STAGE2:-${TAG_STOP_PRIO2:-power-stop-last}}}"
+
+            if [ "$ENABLE_VMS" != "$last_vms" ]; then
+                echo "[$(date '+%Y-%m-%d %H:%M:%S')] Configuration reloaded: ENABLE_VMS changed to '$ENABLE_VMS'."
+                last_vms="$ENABLE_VMS"
+            fi
+        fi
+
         if should_be_off; then
             current_target="OFF"
         else
